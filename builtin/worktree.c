@@ -320,6 +320,9 @@ static int add_worktree(const char *path, const char *refname,
 	if (ret)
 		goto done;
 
+	if (opts->new_branch)
+		fprintf(stderr, _(", creating new branch '%s'"), opts->new_branch);
+
 	fprintf(stderr, _(", setting HEAD to %s"),
 		find_unique_abbrev(commit->object.oid.hash, DEFAULT_ABBREV));
 
