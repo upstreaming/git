@@ -38,6 +38,50 @@ test_expect_success 'ref advertisment is filtered with ls-remote using protocol 
 	! grep "refs/tags/" log
 '
 
+test_expect_success 'clone with git:// using protocol v2' '
+	GIT_TRACE_PACKET=1 git -c protocol.version=2 \
+		clone "$GIT_DAEMON_URL/parent" daemon_child 2>log &&
+
+	git -C daemon_child log -1 --format=%s >actual &&
+	git -C "$daemon_parent" log -1 --format=%s >expect &&
+	test_cmp expect actual &&
+
+	# Client requested to use protocol v2
+	grep "clone> .*\\\0\\\0version=2\\\0$" log &&
+	# Server responded using protocol v2
+	grep "clone< version 2" log
+'
+
+test_expect_success 'fetch with git:// using protocol v2' '
+	test_commit -C "$daemon_parent" two &&
+
+	GIT_TRACE_PACKET=1 git -C daemon_child -c protocol.version=2 \
+		fetch 2>log &&
+
+	git -C daemon_child log -1 --format=%s origin/master >actual &&
+	git -C "$daemon_parent" log -1 --format=%s >expect &&
+	test_cmp expect actual &&
+
+	# Client requested to use protocol v2
+	grep "fetch> .*\\\0\\\0version=2\\\0$" log &&
+	# Server responded using protocol v2
+	grep "fetch< version 2" log
+'
+
+test_expect_success 'pull with git:// using protocol v2' '
+	GIT_TRACE_PACKET=1 git -C daemon_child -c protocol.version=2 \
+		pull 2>log &&
+
+	git -C daemon_child log -1 --format=%s >actual &&
+	git -C "$daemon_parent" log -1 --format=%s >expect &&
+	test_cmp expect actual &&
+
+	# Client requested to use protocol v2
+	grep "fetch> .*\\\0\\\0version=2\\\0$" log &&
+	# Server responded using protocol v2
+	grep "fetch< version 2" log
+'
+
 stop_git_daemon
 
 # Test protocol v2 with 'file://' transport
@@ -61,6 +105,46 @@ test_expect_success 'list refs with file:// using protocol v2' '
 test_expect_success 'ref advertisment is filtered with ls-remote using protocol v2' '
 	GIT_TRACE_PACKET=1 git -c protocol.version=2 \
 		ls-remote "file://$(pwd)/file_parent" master 2>log &&
+
+	grep "ref-pattern master" log &&
+	! grep "refs/tags/" log
+'
+
+test_expect_success 'clone with file:// using protocol v2' '
+	GIT_TRACE_PACKET=1 git -c protocol.version=2 \
+		clone "file://$(pwd)/file_parent" file_child 2>log &&
+
+	git -C file_child log -1 --format=%s >actual &&
+	git -C file_parent log -1 --format=%s >expect &&
+	test_cmp expect actual &&
+
+	# Server responded using protocol v2
+	grep "clone< version 2" log
+'
+
+test_expect_success 'fetch with file:// using protocol v2' '
+	test_commit -C file_parent two &&
+
+	GIT_TRACE_PACKET=1 git -C file_child -c protocol.version=2 \
+		fetch origin 2>log &&
+
+	git -C file_child log -1 --format=%s origin/master >actual &&
+	git -C file_parent log -1 --format=%s >expect &&
+	test_cmp expect actual &&
+
+	# Server responded using protocol v2
+	grep "fetch< version 2" log
+'
+
+test_expect_success 'ref advertisment is filtered during fetch using protocol v2' '
+	test_commit -C file_parent three &&
+
+	GIT_TRACE_PACKET=1 git -C file_child -c protocol.version=2 \
+		fetch origin master 2>log &&
+
+	git -C file_child log -1 --format=%s origin/master >actual &&
+	git -C file_parent log -1 --format=%s >expect &&
+	test_cmp expect actual &&
 
 	grep "ref-pattern master" log &&
 	! grep "refs/tags/" log
