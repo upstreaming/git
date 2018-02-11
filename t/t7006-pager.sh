@@ -261,22 +261,22 @@ test_expect_success TTY 'git config --edit ignores pager.config' '
 	test -e editor.used
 '
 
-test_expect_success TTY 'git config --get defaults to not paging' '
+test_expect_success TTY 'git config --get defaults to paging' '
 	rm -f paginated.out &&
 	test_terminal git config --get foo.bar &&
-	! test -e paginated.out
+	test -e paginated.out
 '
 
 test_expect_success TTY 'git config --get respects pager.config' '
 	rm -f paginated.out &&
-	test_terminal git -c pager.config config --get foo.bar &&
-	test -e paginated.out
+	test_terminal git -c pager.config=false config --get foo.bar &&
+	! test -e paginated.out
 '
 
-test_expect_success TTY 'git config --list defaults to not paging' '
+test_expect_success TTY 'git config --list defaults to paging' '
 	rm -f paginated.out &&
 	test_terminal git config --list &&
-	! test -e paginated.out
+	test -e paginated.out
 '
 
 

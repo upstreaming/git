@@ -600,7 +600,7 @@ int cmd_config(int argc, const char **argv, const char *prefix)
 	}
 
 	if (actions & ACTION_LIST_OR_GET)
-		setup_auto_pager("config", 0);
+		setup_auto_pager("config", 1);
 
 	if (actions == ACTION_LIST) {
 		check_argc(argc, 0, 0);
