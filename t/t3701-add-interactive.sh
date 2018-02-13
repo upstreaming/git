@@ -507,7 +507,7 @@ test_expect_success 'set up pathological context' '
 	EOF
 '
 
-test_expect_failure 'add -p works with pathological context lines' '
+test_expect_success 'add -p works with pathological context lines' '
 	git reset &&
 	printf "%s\n" n y |
 	git add -p &&
