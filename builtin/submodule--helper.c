@@ -547,14 +547,21 @@ static int module_init(int argc, const char **argv, const char *prefix)
 	struct pathspec pathspec;
 	struct module_list list = MODULE_LIST_INIT;
 	int quiet = 0;
+	const char *depth = NULL;
+	const char *branch = NULL;
 
 	struct option module_init_options[] = {
+		OPT_STRING(0, "depth", &depth, "<depth>",
+			   N_("Create a shallow clone truncated to the "
+			      "specified number of revisions")),
+		OPT_STRING(0, "branch", &branch, "<branch>",
+			   N_("Clone the given branch instead of the default")),
 		OPT__QUIET(&quiet, N_("Suppress output for initializing a submodule")),
 		OPT_END()
 	};
 
 	const char *const git_submodule_helper_usage[] = {
-		N_("git submodule--helper init [<path>]"),
+		N_("git submodule--helper init [--depth=N] [--branch=<name>] [<path>]"),
 		NULL
 	};
 
