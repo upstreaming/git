@@ -259,6 +259,51 @@ test_expect_success 'submodule update --remote should fetch upstream changes wit
 	)
 '
 
+test_expect_success 'submodule update --remote --recursive --init should fetch module branch from .gitmodules' '
+	git clone . super5 &&
+	git clone super5 submodl2b2 &&
+	git clone super5 submodl1b1 &&
+	cd submodl2b2 &&
+	git checkout -b b2 &&
+	test_commit "l2_on_b2" &&
+	git rev-parse --verify HEAD >../expectl2 &&
+	cd ../submodl1b1 &&
+	git checkout -b b1 &&
+	test_commit "l1_on_b1" &&
+	git submodule add ../submodl2b2 submodl2b2 &&
+	git config -f .gitmodules submodule."submodl2b2".branch b2 &&
+	git add .gitmodules &&
+	git -C ../submodl2b2 checkout master &&
+	test_tick &&
+	git commit -m "add l2 (on b2) in l1 (on b1)" &&
+	git rev-parse --verify HEAD >../expectl1 &&
+	cd ../super5 &&
+	test_commit super5_commit_before_2_chained_modules_on_default_branch &&
+	git submodule add ../submodl1b1 submodl1b1 &&
+	git config -f .gitmodules submodule."submodl1b1".branch b1 &&
+	git add .gitmodules &&
+	test_tick &&
+	git commit -m "add l1 module with branch b1 in super5" &&
+	git -C ../submodl1b1 checkout master &&
+	git submodule init submodl1b1 &&
+	cd .. &&
+	git clone super5 super_w &&
+	git -C super_w submodule update --recursive --init &&
+	(
+		cd super_w/submodl1b1 &&
+		git rev-parse --verify HEAD >../../actuall1 &&
+		test_cmp ../../expectl1 ../../actuall1
+	) &&
+	(
+		cd super_w/submodl1b1/submodl2b2 &&
+		git rev-parse --verify HEAD >../../../actuall2 &&
+		test_cmp ../../../expectl2 ../../../actuall2
+	) &&
+	test_when_finished "rm -fr super_w" &&
+	test_when_finished "rm -fr submodl2b2 expectl1 actuall1" &&
+	test_when_finished "rm -fr submodl1b1 expectl2 actuall2"
+'
+
 test_expect_success 'local config should override .gitmodules branch' '
 	(cd submodule &&
 	 git checkout test-branch &&

@@ -589,8 +589,10 @@ cmd_update()
 			branch=$(git submodule--helper remote-branch "$sm_path")
 			if test -z "$nofetch"
 			then
+				# non-default branch refspec
+				br_refspec=$(git submodule-helper remote-branch $sm_path)
 				# Fetch remote before determining tracking $sha1
-				fetch_in_submodule "$sm_path" $depth ||
+				fetch_in_submodule "$sm_path" $depth $br_refspec ||
 				die "$(eval_gettext "Unable to fetch in submodule path '\$sm_path'")"
 			fi
 			remote_name=$(sanitize_submodule_env; cd "$sm_path" && get_default_remote)
