@@ -1,0 +1,37 @@
+There are projects such as llvm/clang which use several repositories, and they
+might be forked for providing support for various features such as adding Redox
+awareness to the toolchain. This typically means the superproject will use
+another branch than master, occasionally even use an old commit from that
+non-master branch.
+
+Combined with the fact that when incorporating such a hierachy of repositories
+usually the user is interested in just the exact commit specified in the
+submodule info, it follows that a desireable usecase is to be also able to
+provide '--depth 1' to avoid waiting for ages for the clone operation to
+finish.
+
+Git submodule seems to be very stubborn and cloning master, although the
+wrapper script and the gitmodules-helper could work together to clone directly
+the branch specified in the .gitmodules file, if specified.
+
+Another wrinkle is that when the commit is not the tip of the branch, the depth
+parameter should somehow be stored in the .gitmodules info, but any change in
+the submodule will break the supermodule submodule depth info sooner or later,
+which is definitly frigile.
+
+I tried digging into this section of the code and debugging with bashdb to see
+where --depth might fit, but I got stuck on the shell-to-helper interaction and
+the details of the submodule implementation, so I want to lay out this first
+patch as starting point for the discussion in the hope somebody else picks it
+up or can provide some inputs. I have the feeling there are multiple code paths
+that are being ran, depending on the moment (initial clone, submodule
+recursive, post-clone update etc.) and I have a gut feeling there shouldn't be
+any code duplication just because the operation is different.
+
+This first patch is only trying to use a non-master branch, I have some changes
+for the --depth part, but I stopped working on it due to the "default depth"
+issue above.
+
+Does any of this sound reasonable?
+Is this patch idea usable or did I managed to touch the part of the code that
+should not be touched?
